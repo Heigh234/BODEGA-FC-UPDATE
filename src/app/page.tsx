@@ -1,10 +1,12 @@
 "use client"
+
 import * as React from "react"
 import useSWR from "swr"
 import { Search, GripVertical, Edit, Trash2, Plus, Minus, AlertCircle } from "lucide-react"
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { toast } from "sonner"
 import Link from "next/link"
+
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -16,9 +18,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+
 import { getStoreProducts, getLatestUploadInfo } from "@/actions/data-actions"
 import { removeStoreProduct, reorderStoreProducts, updateStoreProduct } from "@/actions/store-actions"
 import { StoreProduct } from "@/types"
+
 export default function StorePage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState<"all" | "up" | "down" | "same">("all")
@@ -26,12 +30,15 @@ export default function StorePage() {
   
   const { data: rawStoreProducts, mutate, isLoading } = useSWR('store', getStoreProducts)
   const { data: latestInfo } = useSWR('latestInfo', getLatestUploadInfo)
+
   const [localProducts, setLocalProducts] = React.useState<StoreProduct[]>([])
+
   React.useEffect(() => {
     if (rawStoreProducts) {
       setLocalProducts(rawStoreProducts)
     }
   }, [rawStoreProducts])
+
   const filteredProducts = React.useMemo(() => {
     if (!localProducts) return []
     return localProducts.filter(p => {
@@ -39,6 +46,7 @@ export default function StorePage() {
       const matchesSearch = !searchQuery || p.custom_name.toLowerCase().includes(lowerQuery)
       
       if (!matchesSearch) return false
+
       if (priceFilter !== "all") {
         const basePrice = p.manual_price ?? p.catalog_product?.price ?? 0
         const previousPrice = p.catalog_product?.previous_price
@@ -46,25 +54,33 @@ export default function StorePage() {
         const isUp = previousPrice && basePrice > previousPrice
         const isDown = previousPrice && basePrice < previousPrice
         const isSame = !isUp && !isDown
+
         if (priceFilter === "up" && !isUp) return false
         if (priceFilter === "down" && !isDown) return false
         if (priceFilter === "same" && !isSame) return false
       }
+
       return true
     })
   }, [localProducts, searchQuery, priceFilter])
+
   const isDragDisabled = !!searchQuery || priceFilter !== "all"
+
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination || isDragDisabled) return
+
     const items = Array.from(localProducts)
     const [reorderedItem] = items.splice(result.source.index, 1)
     items.splice(result.destination.index, 0, reorderedItem)
+
     const updatedItems = items.map((item, index) => ({ ...item, order_position: index }))
     setLocalProducts(updatedItems)
+
     const updates = updatedItems.map(item => ({ id: item.id, order_position: item.order_position }))
     await reorderStoreProducts(updates)
     mutate()
   }
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`¿Quitar '${name}' de Mi Tienda?`)) return
     const toastId = toast.loading('Eliminando...')
@@ -79,6 +95,7 @@ export default function StorePage() {
       mutate()
     }
   }
+
   return (
     <div className="space-y-4 pt-4">
       {/* Search Bar */}
@@ -102,6 +119,7 @@ export default function StorePage() {
           </button>
         )}
       </div>
+
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <button 
@@ -145,6 +163,7 @@ export default function StorePage() {
           <span className={priceFilter !== "same" ? "text-gray-400" : "text-gray-600"}>=</span> Mantenido
         </button>
       </div>
+
       {isLoading ? (
         <div className="text-center py-8 text-gray-400 font-medium">Cargando tu tienda...</div>
       ) : localProducts.length === 0 ? (
@@ -176,6 +195,7 @@ export default function StorePage() {
                   const diffPercent = previousPrice ? Math.abs((basePrice - previousPrice) / previousPrice * 100).toFixed(1) : 0
                   
                   const isMissingFromPdf = product.catalog_product && latestInfo && product.catalog_product.pdf_date !== latestInfo.pdf_date
+
                   return (
                     <Draggable 
                       key={product.id} 
@@ -198,6 +218,7 @@ export default function StorePage() {
                               <GripVertical className="h-5 w-5" />
                             </div>
                           )}
+
                           <div className={`flex-1 py-4 pr-4 ${isDragDisabled ? 'pl-4' : ''}`}>
                             {/* Header row */}
                             <div className="flex justify-between items-start mb-4">
@@ -219,6 +240,7 @@ export default function StorePage() {
                                 </button>
                               </div>
                             </div>
+
                             {/* Warnings */}
                             {product.is_pending && (
                               <div className="mb-3 inline-flex items-center text-xs font-medium bg-amber-50 text-amber-800 px-2 py-1 rounded">
@@ -230,6 +252,7 @@ export default function StorePage() {
                                 <AlertCircle className="h-3 w-3 mr-1" /> No está en el PDF más reciente
                               </div>
                             )}
+
                             {/* Price Rows */}
                             <div className="flex flex-col">
                               {/* Row 1: PDF Price */}
@@ -249,6 +272,7 @@ export default function StorePage() {
                                   )}
                                 </div>
                               </div>
+
                               {/* Row 2+: Retail Prices */}
                               {product.margins.map((margin, i) => {
                                 const unitPrice = (basePrice * (1 + margin / 100)) / product.quantity
@@ -274,6 +298,7 @@ export default function StorePage() {
           </Droppable>
         </DragDropContext>
       )}
+
       {/* Edit Dialog */}
       {editingProduct && (
         <EditProductDialog 
@@ -286,25 +311,30 @@ export default function StorePage() {
     </div>
   )
 }
+
 function EditProductDialog({ product, open, onOpenChange, onSaved }: { product: StoreProduct, open: boolean, onOpenChange: (open: boolean) => void, onSaved: () => void }) {
   const [name, setName] = React.useState(product.custom_name)
   const [manualPrice, setManualPrice] = React.useState(product.manual_price !== null ? String(product.manual_price) : "")
   const [quantity, setQuantity] = React.useState(String(product.quantity))
   const [margins, setMargins] = React.useState<string[]>(product.margins.map(String))
   const [isSaving, setIsSaving] = React.useState(false)
+
   const handleSave = async () => {
     setIsSaving(true)
     try {
       const parsedManualPrice = manualPrice.trim() !== "" ? parseFloat(manualPrice) : null
       const parsedQuantity = parseInt(quantity, 10) || 1
       const parsedMargins = margins.map(m => parseFloat(m) || 0)
+
       if (parsedMargins.length === 0) parsedMargins.push(0)
+
       const result = await updateStoreProduct(product.id, {
         custom_name: name,
         manual_price: parsedManualPrice,
         quantity: parsedQuantity,
         margins: parsedMargins
       })
+
       if (result.success) {
         toast.success("Producto actualizado")
         onSaved()
@@ -315,6 +345,7 @@ function EditProductDialog({ product, open, onOpenChange, onSaved }: { product: 
       setIsSaving(false)
     }
   }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[90vw] sm:max-w-[425px] p-0 overflow-hidden bg-white rounded-2xl">
@@ -341,6 +372,7 @@ function EditProductDialog({ product, open, onOpenChange, onSaved }: { product: 
               placeholder="Dejar vacío para usar precio del PDF"
             />
           </div>
+
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Cantidad (Stock / Unidades por caja)</Label>
             <Input 
@@ -351,6 +383,7 @@ function EditProductDialog({ product, open, onOpenChange, onSaved }: { product: 
               onChange={(e) => setQuantity(e.target.value)} 
             />
           </div>
+
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">% De Ganancia</Label>
             <div className="space-y-2.5">

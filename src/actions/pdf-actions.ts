@@ -1,8 +1,11 @@
 "use server"
 
+// Debe importarse ANTES que "pdf-parse" para que el CanvasFactory
+// quede registrado antes de que pdfjs-dist intente usar DOMMatrix
+import { CanvasFactory } from 'pdf-parse/worker'
 import { PDFParse } from 'pdf-parse'
 import { createClient } from '@/lib/supabase/server'
-import { revalidateTag, updateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 
 function capitalizeTitle(text: string) {
   return text
@@ -36,7 +39,7 @@ function parsePrice(rawPrice: string) {
 }
 
 function levenshteinDistance(s1: string, s2: string): number {
-  const costs = [];
+  const costs: number[] = [];
   for (let i = 0; i <= s1.length; i++) {
     let lastValue = i;
     for (let j = 0; j <= s2.length; j++) {
@@ -82,7 +85,7 @@ export async function processPdfAction(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const parser = new PDFParse({ data: buffer })
+    const parser = new PDFParse({ data: buffer, CanvasFactory })
     let text = ''
     try {
       const result = await parser.getText()
@@ -133,9 +136,8 @@ export async function processPdfAction(formData: FormData) {
       .select('id, name, price, pdf_date')
 
     const existingMap = new Map(existingCatalog?.map(p => [p.name.toLowerCase(), p]))
-    
-    const toInsert: any[] = []
-    const toUpdate: any[] = []
+    const toInsert: Record<string, unknown>[] = []
+    const toUpdate: Record<string, unknown>[] = []
 
     for (const p of products) {
       const pNameLower = p.name.toLowerCase()
@@ -259,8 +261,8 @@ export async function processPdfAction(formData: FormData) {
 
     return { success: true, count: products.length }
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err)
-    return { success: false, error: 'Error inesperado procesando el PDF: ' + err.message }
+    return { success: false, error: (err instanceof Error ? err.message : 'Error inesperado procesando el PDF') }
   }
 }

@@ -17,16 +17,15 @@ import { toast } from "sonner"
 export default function ShoppingListDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
   const listId = resolvedParams.id
-  const router = useRouter()
 
   const { data: items, mutate: mutateItems } = useSWR(`shopping_items_${listId}`, () => getShoppingListItems(listId))
-  const { data: catalog } = useSWR('catalog', getCatalogProducts)
-  const { data: storeProducts } = useSWR('store', getStoreProducts)
-  const { data: latestInfo } = useSWR('latestInfo', getLatestUploadInfo)
+  const { data: catalog } = useSWR('catalog', () => getCatalogProducts())
+  const { data: storeProducts } = useSWR('store', () => getStoreProducts())
+  const { data: latestInfo } = useSWR('latestInfo', () => getLatestUploadInfo())
 
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [isSearching, setIsSearching] = React.useState(false)
   const [searchSource, setSearchSource] = React.useState<'store' | 'catalog'>('store')
+  const [isSearching, setIsSearching] = React.useState(false)
 
   // Filter catalog for search results
   const searchResults = React.useMemo(() => {

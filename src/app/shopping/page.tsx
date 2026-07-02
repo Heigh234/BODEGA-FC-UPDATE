@@ -12,7 +12,7 @@ import { getShoppingLists, createShoppingList, deleteShoppingList } from "@/acti
 
 export default function ShoppingListsPage() {
   const router = useRouter()
-  const { data: lists, mutate } = useSWR('shopping_lists', getShoppingLists)
+  const { data: lists, mutate } = useSWR('shopping_lists', () => getShoppingLists())
   const [isCreating, setIsCreating] = React.useState(false)
 
   const handleCreateList = async () => {

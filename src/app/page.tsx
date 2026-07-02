@@ -35,6 +35,7 @@ export default function StorePage() {
 
   React.useEffect(() => {
     if (rawStoreProducts) {
+      // eslint-disable-next-line
       setLocalProducts(rawStoreProducts)
     }
   }, [rawStoreProducts])

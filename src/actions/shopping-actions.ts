@@ -3,19 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { ShoppingList, ShoppingListItem } from '@/types'
 import { revalidatePath } from 'next/cache'
 export async function getShoppingLists(): Promise<ShoppingList[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('shopping_lists')
-    .select('*')
-    .order('created_at', { ascending: false })
   try {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('shopping_lists')
       .select('*')
       .order('created_at', { ascending: false })
-  if (error) {
-    console.error('Error fetching shopping lists:', error)
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('shopping_lists')
+    .select('*')
+    .order('created_at', { ascending: false })
     if (error) {
       console.error('Error fetching shopping lists:', error)
       return []
@@ -23,6 +21,8 @@ export async function getShoppingLists(): Promise<ShoppingList[]> {
     return data || []
   } catch (err) {
     console.error('Catch Error fetching shopping lists:', err)
+  if (error) {
+    console.error('Error fetching shopping lists:', error)
     return []
   }
   return data || []
@@ -30,15 +30,6 @@ export async function getShoppingLists(): Promise<ShoppingList[]> {
 export async function createShoppingList(name: string) {
 }
 export async function getShoppingListItems(listId: string): Promise<ShoppingListItem[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('shopping_list_items')
-    .select(`
-      *,
-      catalog_product:catalog_products(*)
-    `)
-    .eq('list_id', listId)
-    .order('created_at', { ascending: true })
   try {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -49,8 +40,15 @@ export async function getShoppingListItems(listId: string): Promise<ShoppingList
       `)
       .eq('list_id', listId)
       .order('created_at', { ascending: true })
-  if (error) {
-    console.error('Error fetching list items:', error)
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('shopping_list_items')
+    .select(`
+      *,
+      catalog_product:catalog_products(*)
+    `)
+    .eq('list_id', listId)
+    .order('created_at', { ascending: true })
     if (error) {
       console.error('Error fetching shopping list items:', error)
       return []
@@ -58,9 +56,11 @@ export async function getShoppingListItems(listId: string): Promise<ShoppingList
     return data as unknown as ShoppingListItem[]
   } catch (err) {
     console.error('Catch Error fetching shopping list items:', err)
+  if (error) {
+    console.error('Error fetching shopping list items:', error)
     return []
   }
-  return data || []
+  return data as unknown as ShoppingListItem[]
 }
 export async function addShoppingListItem(listId: string, catalogProductId: string) {
   const supabase = await createClient()

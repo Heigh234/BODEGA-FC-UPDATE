@@ -15,9 +15,9 @@ export function Header() {
   const pathname = usePathname()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   
-  const { data: latestInfo, mutate: mutateInfo } = useSWR('latestInfo', getLatestUploadInfo)
-  const { data: storeProducts, mutate: mutateStore } = useSWR('store', getStoreProducts)
-  const { data: catalogProducts, mutate: mutateCatalog } = useSWR('catalog', getCatalogProducts)
+  const { data: latestInfo, mutate: mutateInfo } = useSWR('latestInfo', () => getLatestUploadInfo())
+  const { data: storeProducts, mutate: mutateStore } = useSWR('store', () => getStoreProducts())
+  const { data: catalogProducts, mutate: mutateCatalog } = useSWR('catalog', () => getCatalogProducts())
 
   const storeCount = storeProducts?.length || 0
   const catalogCount = catalogProducts?.length || 0

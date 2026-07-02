@@ -28,8 +28,8 @@ export default function StorePage() {
   const [priceFilter, setPriceFilter] = React.useState<"all" | "up" | "down" | "same">("all")
   const [editingProduct, setEditingProduct] = React.useState<StoreProduct | null>(null)
   
-  const { data: rawStoreProducts, mutate, isLoading } = useSWR('store', getStoreProducts)
-  const { data: latestInfo } = useSWR('latestInfo', getLatestUploadInfo)
+  const { data: rawStoreProducts, mutate, isLoading } = useSWR('store', () => getStoreProducts())
+  const { data: latestInfo } = useSWR('latestInfo', () => getLatestUploadInfo())
 
   const [localProducts, setLocalProducts] = React.useState<StoreProduct[]>([])
 

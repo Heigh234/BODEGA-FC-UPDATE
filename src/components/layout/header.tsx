@@ -19,8 +19,7 @@ export function Header() {
   const { data: storeProducts, mutate: mutateStore } = useSWR('store', () => getStoreProducts())
   const { data: catalogProducts, mutate: mutateCatalog } = useSWR('catalog', () => getCatalogProducts())
 
-  const storeCount = storeProducts?.length || 0
-  const catalogCount = catalogProducts?.length || 0
+  // Unused storeCount and catalogCount removed
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

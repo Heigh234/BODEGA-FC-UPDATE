@@ -14,8 +14,8 @@ export default function CatalogPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState<"all" | "up" | "down" | "same">("all")
   
-  const { data: catalogProducts, isLoading: isCatalogLoading } = useSWR('catalog', getCatalogProducts)
-  const { data: storeProducts, mutate: mutateStore } = useSWR('store', getStoreProducts)
+  const { data: catalogProducts, isLoading: isCatalogLoading } = useSWR('catalog', () => getCatalogProducts())
+  const { data: storeProducts, mutate: mutateStore } = useSWR('store', () => getStoreProducts())
 
   const storeProductIds = React.useMemo(() => {
     return new Set(storeProducts?.map(p => p.catalog_product_id).filter(Boolean))
